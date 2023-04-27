@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.acwing.com/static/jquery-ui-dist/jquery-ui.min.css">
+    <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
+</head>
+
+<body>
+<style type="text/css">
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .file_choose_button {
+        position: absolute;
+        top: 25%;
+        left: 60%;
+    }
+
+    .centerClass {
+        position: absolute;
+        top: 40%;
+        left: 60%;
+    }
+
+    #box {
+        width: 1000px;
+        height: 800px;
+    }
+
+    .chooseSubTar {
+        position: absolute;
+        top: 30%;
+        left: 60%;
+    }
+
+    /* .loadSubTar{
+        position: absolute;
+        top: 30%;
+        left: 55%;
+    } */
+    .startFunc {
+        position: absolute;
+        top: 30%;
+        left: 65%;
+    }
+
+    .saveResult {
+        position: absolute;
+        top: 30%;
+        left: 70%;
+    }
+
+    .choose_list {
+        position: absolute;
+        top: 35%;
+        left: 60%;
+    }
+
+    .showChooseButton {
+        position: absolute;
+        top: 30%;
+        left: 75%;
+    }
+
+    .show_area {
+        position: absolute;
+        top: 50%;
+        left: 60%;
+        width: 300px;
+        height: 180px;
+    }
+</style>
+
+<body>
+<div id="box">
+    <img src="./static/image/testpic.png">
+</div>
+<div class="centerClass">
+    鼠标x位置:
+    <input type="text" id="x"></input>
+    <br>
+    鼠标y位置:
+    <input type="text" id="y"></input>
+</div>
+
+<input type="file" class="file_choose_button" onchange="open_file(event)" id="fileField">
+
+<textarea class="show_area" id="show_area"></textarea>
+<button class="chooseSubTar" onclick="setFlag()">选择区域</button>
+<!-- <button class="loadSubTar">加载子目标</button> -->
+<button class="startFunc" onclick="sendInfo()">开始布线</button>
+<button class="saveResult" onclick="saveResult()">保存结果</button>
+<button class="showChooseButton" onclick="showChoose()">显示选取</button>
+
+<select class="choose_list" id="select" >
+<option value="1">Top</option>
+<option value="2">ART03</option>
+<option value="3">ART08</option>
+<option value="4">ART10</option>
+<option value="5">Bottom</option>
+</select>
+
+<script>
+    select_flag = false;
+    is_init = true;
+    var arr = new Array(4);
+    var cnt = 0;
+    var img_path;
+    var selectValue;
+    window.addEventListener('load', function () {
+        document.onclick = mouseMove;
+        let box = document.querySelector('#box img')
+        console.log("box", box.clientWidth, box.clientHeight)
+
+        function mouseMove(event) {
+            var e = event || window.event;
+            var scrollx = document.documentElement.scrollLeft || document.body.scrollTop;
+            var scrolly = document.documentElement.scrollTop || document.body.scrollTop;
+            var x = e.pageX || e.clientX + scrollx;
+            var y = e.pageY || e.clientY + scrolly;
+            // document.getElementById("x").value = x - box.clientWidth;
+            // document.getElementById("y").value = y - box.clientHeight;
+            document.getElementById("x").value = x;
+            document.getElementById("y").value = y;
+            console.log(x);
+            console.log(y);
+            if (select_flag) {
+                if (is_init) {
+                    is_init = false;
+                    return;
+                } else {
+                    arrPush(x);
+                    arrPush(y);
+                }
+            }
+        }
+    })
+
+    function arrPush(a) {
+        arr[cnt % 4] = a;
+        cnt++;
+    }
+
+    function setFlag() {
+        select_flag = true;
+        is_init = true;
+        cnt = 0;
+        setShowInfo("Now choose your subtarget!");
+    }
+
+    var selects = document.getElementById("select");
+    selects.onchange = function () {
+        var indexs = selects.selectedIndex;  //选中项的索引
+        selectValue = selects.options[indexs].value;
+    }
+
+    var selects = document.getElementById("select");
+    selects.onchange = function () {
+        var indexs = selects.selectedIndex;  //选中项的索引
+        selectValue = selects.options[indexs].value;
+    }
+        function sendInfo() {
+
+            var showStr = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3];
+            setShowInfo(showStr);
+            console.log("selectValue: ", selectValue);
+            $.ajax({
+                url: "http://127.0.0.1:8000/getinfo/",
+                type: "GET",
+                data: {
+                    x0: arr[0],
+                    y0: arr[1],
+                    x1: arr[2],
+                    y1: arr[3],
+                    levelIndex: selectValue,
+                },
+                success: function (resp) {
+                    console.log(resp);
+                    select_flag = true;
+                    is_init = true;
+                    cnt = 0;
+                    img_path = resp.img;
+                    setImg(img_path);
+                }
+            });
+        }
+
+        function saveResult() {
+            $.ajax({
+                url: "http://127.0.0.1:8000/saveres/",
+                type: "GET",
+                data: {
+                    x: "nothing",
+                },
+                success: function (resp) {
+                    console.log(resp);
+                }
+            });
+        }
+
+        function setShowInfo(text) {
+            var obj = document.getElementById("show_area");
+            obj.value = text;
+        }
+
+        function showChoose() {
+            var str = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3];
+            setShowInfo(str);
+        }
+
+        function setImg(img_) {
+            var img = document.querySelector('#box img');
+            // console.log(img.src);
+            img.src = img_;
+            console.log("size", img.clientWidth, img.clientHeight);
+        }
+
+        function open_file(event) {
+            const file = event.target.files[0].value;
+            const filepath = document.getElementById('fileField').value; // here, you'll get a fakepath which is like "C:\fakepath\path9.mat"， where `path9.mat` is what we need.
+            var idx;
+            // Thus, I just get the file name with the method `substr`
+            for (let i = filepath.length; i >= 0; --i) {
+                if (filepath[i] == '\\') {
+                    idx = i;
+                    break;
+                }
+            }
+            var filename = filepath.substr(idx + 1);
+            console.log(filename);
+            $.ajax({
+                url: "http://127.0.0.1:8000/getimg/",
+                type: "GET",
+                data: {
+                    file: filename,
+                },
+                success: function (resp) {
+                    console.log(resp);
+                    img_path = resp.img;
+                    setImg(img_path);
+                }
+            });
+        }
+</script>
+</body>
+</body>
+
+</html>
