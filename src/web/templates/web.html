@@ -40,6 +40,12 @@
         left: 60%;
     }
 
+    .chooseSubTar_2 {
+        position: absolute;
+        top: 33%;
+        left: 60%;
+    }
+
     /* .loadSubTar{
         position: absolute;
         top: 30%;
@@ -59,7 +65,7 @@
 
     .choose_list {
         position: absolute;
-        top: 35%;
+        top: 36%;
         left: 60%;
     }
 
@@ -94,30 +100,39 @@
 
 <textarea class="show_area" id="show_area"></textarea>
 <button class="chooseSubTar" onclick="setFlag()">选择区域</button>
+<button class="chooseSubTar_2" onclick="setFlag_subTar()">选择至多3个子目标</button>
 <!-- <button class="loadSubTar">加载子目标</button> -->
 <button class="startFunc" onclick="sendInfo()">开始布线</button>
 <button class="saveResult" onclick="saveResult()">保存结果</button>
 <button class="showChooseButton" onclick="showChoose()">显示选取</button>
 
-<select class="choose_list" id="select" >
-<option value="1">Top</option>
-<option value="2">ART03</option>
-<option value="3">ART08</option>
-<option value="4">ART10</option>
-<option value="5">Bottom</option>
+<select class="choose_list" id="select">
+    <option value="0">下拉以选取</option>
+    <option value="1">Top</option>
+    <option value="2">ART03</option>
+    <option value="3">ART08</option>
+    <option value="4">ART10</option>
+    <option value="5">Bottom</option>
 </select>
 
 <script>
     select_flag = false;
-    is_init = true;
+    is_init = false;
+    select_flag_SubTar = false;
+    is_init_subTar = false;
     var arr = new Array(4);
+    var arrSubTar = new Array(6).fill(0);
     var cnt = 0;
+    var cnt_subTar = 0;
     var img_path;
     var selectValue;
+    var w, h;
     window.addEventListener('load', function () {
         document.onclick = mouseMove;
         let box = document.querySelector('#box img')
         console.log("box", box.clientWidth, box.clientHeight)
+        w = box.clientWidth;
+        h = box.clientHeight;
 
         function mouseMove(event) {
             var e = event || window.event;
@@ -140,19 +155,51 @@
                     arrPush(y);
                 }
             }
+
+            if (select_flag_SubTar) {
+                if (is_init_subTar) {
+                    is_init_subTar = false;
+                    return;
+                } else {
+                    arrPushSubTar(x);
+                    arrPushSubTar(y);
+                }
+            }
+
         }
     })
 
     function arrPush(a) {
+        if (cnt == 4) {
+            select_flag = false;
+            return;
+        }
         arr[cnt % 4] = a;
         cnt++;
+    }
+
+    function arrPushSubTar(a) {
+        if (cnt_subTar == 6) {
+            select_flag_SubTar = false;
+            return;
+        }
+        arrSubTar[cnt_subTar % 6] = a;
+        cnt_subTar++;
     }
 
     function setFlag() {
         select_flag = true;
         is_init = true;
         cnt = 0;
-        setShowInfo("Now choose your subtarget!");
+        setShowInfo("Now choose your area! Your following two clicks will be recorded.");
+    }
+
+    function setFlag_subTar() {
+        select_flag = false;
+        select_flag_SubTar = true;
+        is_init_subTar = true;
+        cnt_subTar = 0;
+        setShowInfo("Now choose your sub target! Your following three clicks will be recorded.");
     }
 
     var selects = document.getElementById("select");
@@ -166,88 +213,105 @@
         var indexs = selects.selectedIndex;  //选中项的索引
         selectValue = selects.options[indexs].value;
     }
-        function sendInfo() {
 
-            var showStr = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3];
-            setShowInfo(showStr);
-            console.log("selectValue: ", selectValue);
-            $.ajax({
-                url: "http://127.0.0.1:8000/getinfo/",
-                type: "GET",
-                data: {
-                    x0: arr[0],
-                    y0: arr[1],
-                    x1: arr[2],
-                    y1: arr[3],
-                    levelIndex: selectValue,
-                },
-                success: function (resp) {
-                    console.log(resp);
-                    select_flag = true;
-                    is_init = true;
-                    cnt = 0;
-                    img_path = resp.img;
-                    setImg(img_path);
-                }
-            });
-        }
-
-        function saveResult() {
-            $.ajax({
-                url: "http://127.0.0.1:8000/saveres/",
-                type: "GET",
-                data: {
-                    x: "nothing",
-                },
-                success: function (resp) {
-                    console.log(resp);
-                }
-            });
-        }
-
-        function setShowInfo(text) {
-            var obj = document.getElementById("show_area");
-            obj.value = text;
-        }
-
-        function showChoose() {
-            var str = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3];
-            setShowInfo(str);
-        }
-
-        function setImg(img_) {
-            var img = document.querySelector('#box img');
-            // console.log(img.src);
-            img.src = img_;
-            console.log("size", img.clientWidth, img.clientHeight);
-        }
-
-        function open_file(event) {
-            const file = event.target.files[0].value;
-            const filepath = document.getElementById('fileField').value; // here, you'll get a fakepath which is like "C:\fakepath\path9.mat"， where `path9.mat` is what we need.
-            var idx;
-            // Thus, I just get the file name with the method `substr`
-            for (let i = filepath.length; i >= 0; --i) {
-                if (filepath[i] == '\\') {
-                    idx = i;
-                    break;
-                }
+    function sendInfo() {
+        var showStr = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3] + '\n';
+        var showStrSubTar = "sub target: " + arrSubTar[0] + " " + arrSubTar[1] + ";" +
+            arrSubTar[2] + " " + arrSubTar[3] + ";" + arrSubTar[4] + " " + arrSubTar[5] + ";"
+        setShowInfo(showStr + showStrSubTar);
+        console.log("selectValue: ", selectValue);
+        $.ajax({
+            url: "http://127.0.0.1:8000/getinfo/",
+            type: "GET",
+            data: {
+                x0: arr[0],
+                y0: arr[1],
+                x1: arr[2],
+                y1: arr[3],
+                w: w,
+                h: h,
+                cnt_st: cnt_subTar,
+                xx0: arrSubTar[0],
+                yy0: arrSubTar[1],
+                xx1: arrSubTar[2],
+                yy1: arrSubTar[3],
+                xx2: arrSubTar[4],
+                yy2: arrSubTar[5],
+                levelIndex: selectValue,
+            },
+            success: function (resp) {
+                console.log(resp);
+                img_path = resp.img;
+                setImg(img_path);
             }
-            var filename = filepath.substr(idx + 1);
-            console.log(filename);
-            $.ajax({
-                url: "http://127.0.0.1:8000/getimg/",
-                type: "GET",
-                data: {
-                    file: filename,
-                },
-                success: function (resp) {
-                    console.log(resp);
-                    img_path = resp.img;
-                    setImg(img_path);
-                }
-            });
+        });
+        select_flag = false;
+        is_init = false;
+        select_flag_SubTar = false;
+        is_init_subTar = false;
+        cnt = 0;
+        cnt_subTar = 0;
+    }
+
+    function saveResult() {
+        $.ajax({
+            url: "http://127.0.0.1:8000/saveres/",
+            type: "GET",
+            data: {
+                x: "nothing",
+            },
+            success: function (resp) {
+                console.log(resp);
+            }
+        });
+    }
+
+    function setShowInfo(text) {
+        var obj = document.getElementById("show_area");
+        obj.value = text;
+    }
+
+    function showChoose() {
+        var showStr = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3] + '\n';
+        var showStrSubTar = "sub target: " + arrSubTar[0] + " " + arrSubTar[1] + ";" +
+            arrSubTar[2] + " " + arrSubTar[3] + ";" + arrSubTar[4] + " " + arrSubTar[5] + ";"
+        setShowInfo(showStr + showStrSubTar);
+
+    }
+
+    function setImg(img_) {
+        var img = document.querySelector('#box img');
+        // console.log(img.src);
+        img.src = img_;
+        console.log("size", img.clientWidth, img.clientHeight);
+    }
+
+    function open_file(event) {
+        const file = event.target.files[0].value;
+        const filepath = document.getElementById('fileField').value; // here, you'll get a fakepath which is like "C:\fakepath\path9.mat"， where `path9.mat` is what we need.
+        var idx;
+        // Thus, I just get the file name with the method `substr`
+        for (let i = filepath.length; i >= 0; --i) {
+            if (filepath[i] == '\\') {
+                idx = i;
+                break;
+            }
         }
+        var filename = filepath.substr(idx + 1);
+        console.log(filename);
+        $.ajax({
+            url: "http://127.0.0.1:8000/getimg/",
+            type: "GET",
+            data: {
+                file: filename,
+            },
+            success: function (resp) {
+                console.log(resp);
+                img_path = resp.img;
+                setImg(img_path);
+            }
+        });
+    }
 </script>
 </body>
 </body>

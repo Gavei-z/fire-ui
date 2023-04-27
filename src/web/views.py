@@ -16,10 +16,19 @@ def getinfo(request):
     y0 = data.get('y0')
     x1 = data.get('x1')
     y1 = data.get('y1')
-    w = data.get('w');
+    w = data.get('w')
     h = data.get('h')
     levelIdx = data.get('levelIndex')
 
+    # add some stupid operations
+    cntSubTar = data.get('cnt_st')
+    xx0 = data.get('xx0')
+    yy0 = data.get('yy0')
+    xx1 = data.get('xx1')
+    yy1 = data.get('yy1')
+    xx2 = data.get('xx2')
+    yy2 = data.get('yy2')
+    print(cntSubTar)
     # TODO: here you got the information you want, you should do your algorithm job, modify the file name of png
     #  in the following line, the `.png` file is that the picture show your algorithm results. "testpic3.png" => ?
 
