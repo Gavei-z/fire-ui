@@ -29,6 +29,10 @@ def getinfo(request):
     xx2 = data.get('xx2')
     yy2 = data.get('yy2')
     print(cntSubTar)
+    # TODO: When you start your algorithm firstly, you should send some extra information to show. (显示框),
+    #  Just send another image path which is not your algorithm result.
+    #  ** NOTE: You need to run your algorithm on the previous results. **
+
     # TODO: here you got the information you want, you should do your algorithm job, modify the file name of png
     #  in the following line, the `.png` file is that the picture show your algorithm results. "testpic3.png" => ?
 
