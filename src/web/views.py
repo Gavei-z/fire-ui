@@ -18,7 +18,7 @@ def getinfo(request):
     y1 = data.get('y1')
     w = data.get('w')
     h = data.get('h')
-    levelIdx = data.get('levelIndex')
+    # levelIdx = data.get('levelIndex') # move this to `getimg`
 
     # add some stupid operations
     cntSubTar = data.get('cnt_st')
@@ -46,6 +46,7 @@ def getinfo(request):
 def getimg(request):
     data = request.GET
     filename = data.get('file')
+    levelIdx = data.get('levelIndex')
 
     # TODO: choose your `.png` file corresponding to the selected `.dsn` file. You firstly generate the `.png`,
     #  and store it into ./static/image, then you justify the file name in the following line, "testpic2.png" => ?
@@ -53,6 +54,7 @@ def getimg(request):
     return JsonResponse({
         'result': "success",
         'img': sent_img_path,
+        'levelIdx':levelIdx,
     })
 
 

@@ -208,18 +208,18 @@
         selectValue = selects.options[indexs].value;
     }
 
-    var selects = document.getElementById("select");
-    selects.onchange = function () {
-        var indexs = selects.selectedIndex;  //选中项的索引
-        selectValue = selects.options[indexs].value;
-    }
+    {#var selects = document.getElementById("select");#}
+    {#selects.onchange = function () {#}
+    {#    var indexs = selects.selectedIndex;  //选中项的索引#}
+    {#    selectValue = selects.options[indexs].value;#}
+    {#}#}
 
     function sendInfo() {
         var showStr = "pos1: " + arr[0] + " " + arr[1] + "; pos2:" + arr[2] + " " + arr[3] + '\n';
         var showStrSubTar = "sub target: " + arrSubTar[0] + " " + arrSubTar[1] + ";" +
             arrSubTar[2] + " " + arrSubTar[3] + ";" + arrSubTar[4] + " " + arrSubTar[5] + ";"
         setShowInfo(showStr + showStrSubTar);
-        console.log("selectValue: ", selectValue);
+        {#console.log("selectValue: ", selectValue);#}
         $.ajax({
             url: "http://127.0.0.1:8000/getinfo/",
             type: "GET",
@@ -237,7 +237,7 @@
                 yy1: arrSubTar[3],
                 xx2: arrSubTar[4],
                 yy2: arrSubTar[5],
-                levelIndex: selectValue,
+
             },
             success: function (resp) {
                 console.log(resp);
@@ -299,11 +299,13 @@
         }
         var filename = filepath.substr(idx + 1);
         console.log(filename);
+        console.log("selectValue: ", selectValue)
         $.ajax({
             url: "http://127.0.0.1:8000/getimg/",
             type: "GET",
             data: {
                 file: filename,
+                levelIndex: selectValue,
             },
             success: function (resp) {
                 console.log(resp);
